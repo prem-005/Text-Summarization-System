@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSummarizer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">Smart<span>Summarizer</span></div>
+  <div class="tag">AI Text Summarization System</div>
+</header>
+
+<main class="container">
+  <section class="hero">
+    <h1>Turn long documents into clear summaries.</h1>
+    <p>Summarize text, TXT, PDF and DOCX documents using TF-IDF or BART.</p>
+  </section>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert">{{ messages[0] }}</div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" enctype="multipart/form-data" class="card">
+    <label class="label">Input Text</label>
+    <textarea name="text" placeholder="Paste your article, notes, report or document text here...">{{ original_text }}</textarea>
+
+    <div class="upload-row">
+      <label class="filebox">
+        <input type="file" name="file" accept=".txt,.pdf,.docx">
+        <span>📄 Upload TXT / PDF / DOCX</span>
+      </label>
+      <button type="button" class="clear-btn" onclick="document.querySelector('textarea').value=''">Clear</button>
+    </div>
+
+    <div class="controls">
+      <div>
+        <label class="label">Summarization Method</label>
+        <select name="method">
+          <option value="extractive" {% if method == "extractive" %}selected{% endif %}>Extractive — TF-IDF</option>
+          <option value="abstractive" {% if method == "abstractive" %}selected{% endif %}>Abstractive — BART</option>
+        </select>
+      </div>
+      <div>
+        <label class="label">Summary Percentage</label>
+        <input type="number" name="ratio" min="10" max="80" value="{{ ratio }}">
+      </div>
+    </div>
+
+    <button class="primary" type="submit">Generate Summary →</button>
+  </form>
+
+  {% if result %}
+  <section class="result-grid">
+    <div class="card result-card">
+      <div class="result-head">
+        <div>
+          <div class="eyebrow">{{ result.method }}</div>
+          <h2>Generated Summary</h2>
+        </div>
+        <a class="download" href="{{ url_for('download', filename=result.download) }}">Download TXT</a>
+      </div>
+      <p class="summary">{{ result.summary }}</p>
+    </div>
+
+    <aside class="card stats">
+      <h3>Analysis</h3>
+      <div class="stat"><span>Original words</span><b>{{ result.original_words }}</b></div>
+      <div class="stat"><span>Summary words</span><b>{{ result.summary_words }}</b></div>
+      <div class="stat"><span>Compression</span><b>{{ result.metrics.compression }}%</b></div>
+      <hr>
+      <h3>ROUGE</h3>
+      <div class="stat"><span>ROUGE-1</span><b>{{ result.metrics.rouge1 if result.metrics.rouge1 is not none else "N/A" }}</b></div>
+      <div class="stat"><span>ROUGE-2</span><b>{{ result.metrics.rouge2 if result.metrics.rouge2 is not none else "N/A" }}</b></div>
+      <div class="stat"><span>ROUGE-L</span><b>{{ result.metrics.rougeL if result.metrics.rougeL is not none else "N/A" }}</b></div>
+    </aside>
+  </section>
+  {% endif %}
+
+  <section class="features">
+    <div><b>01</b><h3>Extractive NLP</h3><p>Ranks sentences using TF-IDF importance.</p></div>
+    <div><b>02</b><h3>Abstractive AI</h3><p>Uses BART to generate a concise summary.</p></div>
+    <div><b>03</b><h3>Document Support</h3><p>Process TXT, PDF and DOCX files.</p></div>
+  </section>
+</main>
+</body>
+</html>
